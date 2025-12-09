@@ -1,10 +1,14 @@
+from abc import ABC, abstractmethod
+
 from util import read_portfolio
 
 
-class TableFormatter:
+class TableFormatter(ABC):
+    @abstractmethod
     def headings(self, headers):
         raise NotImplementedError()
 
+    @abstractmethod
     def row(self, rowdata):
         raise NotImplementedError()
 
@@ -45,6 +49,8 @@ def create_formatter(formatter):
 
 
 def print_table(headers: list[str], rows: list[object], formatter: TableFormatter):
+    if not isinstance(formatter, TableFormatter):
+        raise TypeError("Expected a TableFormatter")
     formatter.headings(headers)
     for r in rows:
         rowdata = [getattr(r, header_name) for header_name in headers]

@@ -1,7 +1,8 @@
 import csv
+from abc import ABC, abstractmethod
 
 
-def read_portfolio(csv_file) -> tuple[list, list]:
+def read_portfolio(csv_file):
     portfolio = []
     with open(csv_file) as f:
         f_csv = csv.reader(f)
@@ -9,6 +10,39 @@ def read_portfolio(csv_file) -> tuple[list, list]:
         for row in f_csv:
             portfolio.append(Stock(row[0], int(row[1]), float(row[2])))
     return headers, portfolio
+
+
+class CSVParser(ABC):
+
+    def parse(self, filename):
+        records = []
+        with open(filename) as f:
+            rows = csv.reader(f)
+            headers = next(rows)
+            for row in rows:
+                record = self.make_record(headers, row)
+                records.append(record)
+        return records
+
+    @abstractmethod
+    def make_record(self, headers, row) -> None:
+        pass
+
+
+class DictCSVParser(CSVParser):
+    def __init__(self, types):
+        self.types = types
+
+    def make_record(self, headers, row) -> dict:
+        return {name: func(val) for name, func, val in zip(headers, self.types, row)}
+
+
+class InstanceCSVParser(CSVParser):
+    def __init__(self, cls):
+        self.cls = cls
+
+    def make_record(self, headers, row):
+        return self.cls.from_row(row)
 
 
 class Stock:
